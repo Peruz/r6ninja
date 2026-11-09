@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="28.500057mm"
+   height="28.500059mm"
+   viewBox="0 0 28.500057 28.500059"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="icon.png"
+   inkscape:export-xdpi="912.61572"
+   inkscape:export-ydpi="912.61572"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="5.8860488"
+     inkscape:cx="46.041073"
+     inkscape:cy="62.860505"
+     inkscape:window-width="2560"
+     inkscape:window-height="1379"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="14.250027,14.250035"
+       orientation="0,-1"
+       id="guide6"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <rect
+       x="103.97467"
+       y="510.35934"
+       width="189.90207"
+       height="134.89523"
+       id="rect6" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-34.82617,-100.43062)">
+    <circle
+       style="fill:#800000;stroke:#000000;stroke-width:0.529167"
+       id="path1"
+       cx="49.076199"
+       cy="114.68065"
+       r="13.985445" />
+    <path
+       style="fill:#00aa00;stroke:#ffffff;stroke-width:0.529167"
+       d="m 35.090753,114.68065 c 2.792667,-2.8208 2.792667,-2.8208 2.792667,-2.8208"
+       id="path6" />
+    <path
+       style="fill:#00aa00;stroke:#ffffff;stroke-width:0.529167"
+       d="m 63.061645,114.68066 c -2.792667,-2.8208 -2.792667,-2.8208 -2.792667,-2.8208"
+       id="path6-9" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,13.332423,-23.375245)"
+       id="text6"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:53.3333px;font-family:QTPalatine;-inkscape-font-specification:'QTPalatine, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect6);display:inline;fill:#00ff00;stroke:#000000;stroke-width:2"><tspan
+         x="103.97461"
+         y="559.69268"
+         id="tspan2">R6</tspan></text>
+    <ellipse
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:0.530951"
+       id="path7"
+       cx="49.076199"
+       cy="114.68065"
+       rx="13.888944"
+       ry="13.984554" />
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round"
+       id="rect1"
+       width="22.385559"
+       height="3.8657794"
+       x="37.883419"
+       y="107.99408" />
+    <ellipse
+       style="fill:#ff0000;stroke:#000000;stroke-width:0.529167"
+       id="path2-7"
+       cx="42.643108"
+       cy="109.92696"
+       rx="4.7596931"
+       ry="0.7641657" />
+    <ellipse
+       style="fill:#0000ff;stroke:#000000;stroke-width:0.529167"
+       id="path2"
+       cx="55.509289"
+       cy="109.92696"
+       rx="4.7596931"
+       ry="0.7641657" />
+  </g>
+</svg>

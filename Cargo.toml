@@ -1,0 +1,44 @@
+[package]
+name = "r6ninja"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "r6ninja"
+path = "src/lib.rs"
+
+[[bin]]
+name = "r6ninja"
+path = "src/main.rs"
+
+[dependencies]
+slint   = "1"
+duckdb  = { version = "1", features = ["bundled"] }
+anyhow  = "1"
+rfd     = "0.14"
+
+[build-dependencies]
+slint-build = "1"
+# winres = "0.1"  needed for the icon on Windows
+
+[package.metadata.bundle]
+name = "r6ninja"
+identifier = "com.yourdomain.r6ninja"
+icon = ["icon.icns", "icon.ico", "icon_1024.png"]
+
+[package.metadata.appimage]
+icon = "icon_1024.png"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+#
+# # # install Windows target
+# # rustup target add x86_64-pc-windows-gnu
+# # sudo apt install mingw-w64
+# #
+# # # build for Windows
+# # cargo build --release --target x86_64-pc-windows-gnu

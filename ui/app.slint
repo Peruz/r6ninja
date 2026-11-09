@@ -1,0 +1,427 @@
+import { Button, CheckBox, ComboBox, HorizontalBox,
+         LineEdit, ScrollView, SpinBox,
+         VerticalBox } from "std-widgets.slint";
+
+global Theme {
+    out property <color> primary:      #9B0014;
+    out property <color> primary-dark: #6B0010;
+    out property <color> surface:      #F5F5F5;
+    out property <color> on-surface:   #212121;
+    out property <color> divider:      #BDBDBD;
+    out property <color> sec-input:    #E8F4FD;
+    out property <color> sec-process:  #FDF3E8;
+    out property <color> sec-output:   #EDF8ED;
+}
+
+component Label inherits Text {
+    color: Theme.on-surface;
+    font-size: 13px;
+    vertical-alignment: center;
+}
+
+component SectionHeader inherits Rectangle {
+    height: 28px;
+    background: Theme.primary;
+    in property <string> title;
+    Text {
+        x: 10px;
+        height: parent.height;
+        text: title;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        vertical-alignment: center;
+    }
+}
+
+component Row inherits HorizontalBox {
+    padding: 2px;
+    spacing: 6px;
+    alignment: start;
+}
+
+component ChannelRange inherits Row {
+    in property <string> label;
+    in-out property <float> range-min;
+    in-out property <float> range-max;
+    in property <bool> active: true;
+    Label { text: label; width: 70px; }
+    Label { text: "min"; }
+    LineEdit {
+        enabled: root.active;
+        width: 75px;
+        text: root.range-min;
+        edited(v) => { root.range-min = v.to-float(); }
+    }
+    Label { text: "max"; }
+    LineEdit {
+        enabled: root.active;
+        width: 75px;
+        text: root.range-max;
+        edited(v) => { root.range-max = v.to-float(); }
+    }
+}
+
+export component AppWindow inherits Window {
+    title: "R6 Processing – L. Peruzzo, University of Padova";
+    min-width: 860px;
+    min-height: 860px;
+    background: Theme.surface;
+
+    callback pick-files();
+    callback run-processing();
+    callback clear-files();
+
+    in-out property <string>  file-list-display;
+    in-out property <string>  log-text;
+    in-out property <bool>    is-running;
+
+    // input
+    in-out property <bool>    use-gps:      true;
+    in-out property <bool>    merge-files:  true;
+
+    // range filter
+    in-out property <bool>    range-filter-enabled: false;
+    in-out property <bool>    range-per-channel:    false;
+    in-out property <int>     range-action:         0;
+    in-out property <float>   range-global-min:     0.001;
+    in-out property <float>   range-global-max:     500.0;
+    in-out property <float>   range-min1: 0.0; in-out property <float> range-max1: 100.0;
+    in-out property <float>   range-min2: 0.0; in-out property <float> range-max2: 100.0;
+    in-out property <float>   range-min3: 0.0; in-out property <float> range-max3: 100.0;
+    in-out property <float>   range-min4: 0.0; in-out property <float> range-max4: 100.0;
+    in-out property <float>   range-min5: 0.0; in-out property <float> range-max5: 100.0;
+    in-out property <float>   range-min6: 0.0; in-out property <float> range-max6: 100.0;
+
+    // std filter
+    in-out property <bool>    std-filter-enabled:  true;
+    in-out property <float>   std-threshold:       4;
+    in-out property <int>     std-action:          0;
+    in-out property <int>     std-window-mode:     0;
+    in-out property <float>   std-window-seconds:  6.0;
+    in-out property <int>     std-window-samples:  10;
+
+    // smooth / downsample
+    in-out property <bool>    smooth-enabled:     false;
+    in-out property <bool>    downsample-enabled: false;
+    in-out property <int>     agg-mode:           0;
+    in-out property <int>     agg-samples:        1;
+    in-out property <float>   agg-seconds:        1.0;
+    in-out property <int>     agg-stat:           0;
+
+    // output
+    in-out property <bool>    out-csv:       true;
+    in-out property <bool>    out-duckdb:    true;
+    in-out property <bool>    out-emagpy:    true;
+    in-out property <string>  freq:          "9000";
+    in-out property <string>  sensor-height: "0.15";
+
+    VerticalBox {
+        padding: 0px;
+        spacing: 0px;
+
+        // top bar
+        Rectangle {
+            height: 72px;
+            background: Theme.primary-dark;
+            HorizontalBox {
+                padding: 10px; spacing: 8px;
+                Text {
+                    text: "R6ninja";
+                    color: white; font-size: 17px; font-weight: 700;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Luca Peruzzo - University of Padova";
+                    color: #FFCCCC; font-size: 16px;
+                    vertical-alignment: center;
+                }
+                Rectangle { horizontal-stretch: 1; }  // spacer pushes logo to the right
+                Image {
+                    source: @image-url("../icon_1024.png");
+                    width: 64px;
+                    height: 64px;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // main scrollable area
+        ScrollView {
+            vertical-stretch: 1;
+            VerticalBox {
+                padding: 8px; spacing: 4px;
+
+                // ── INPUT ─────────────────────────────────────────
+                SectionHeader { title: "Input"; }
+                Rectangle {
+                    background: Theme.sec-input;
+                    border-radius: 4px;
+                    VerticalBox {
+                        padding: 6px; spacing: 2px;
+                        Row {
+                            Button {
+                                text: "Add Files…"; primary: true;
+                                clicked => { root.pick-files(); }
+                            }
+                            Button {
+                                text: "Clear";
+                                clicked => { root.clear-files(); }
+                            }
+                            CheckBox {
+                                text: "Merge all into one output";
+                                checked <=> root.merge-files;
+                            }
+                            CheckBox {
+                                text: "Use GPS";
+                                checked <=> root.use-gps;
+                            }
+                        }
+                        Rectangle {
+                            height: 48px;
+                            background: white;
+                            border-color: Theme.divider;
+                            border-width: 1px;
+                            border-radius: 3px;
+                            clip: true;
+                            Text {
+                                x: 6px; y: 4px;
+                                text: root.file-list-display == "" ?
+                                    "No files selected..." :
+                                    root.file-list-display;
+                                font-size: 12px;
+                                color: root.file-list-display == "" ?
+                                    Theme.divider : Theme.on-surface;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+
+                // ── PROCESSING ────────────────────────────────────
+                SectionHeader { title: "Processing"; }
+                Rectangle {
+                    background: Theme.sec-process;
+                    border-radius: 4px;
+                    VerticalBox {
+                        padding: 6px; spacing: 2px;
+
+                        // range filter
+                        Row {
+                            CheckBox {
+                                text: "Range filter:";
+                                checked <=> root.range-filter-enabled;
+                            }
+                            CheckBox {
+                                enabled: root.range-filter-enabled;
+                                text: "Per channel";
+                                checked <=> root.range-per-channel;
+                            }
+                            Label { text: "Action:"; }
+                            ComboBox {
+                                enabled: root.range-filter-enabled;
+                                width: 130px;
+                                model: ["Flag (NULL)", "Remove row"];
+                                current-index <=> root.range-action;
+                            }
+                        }
+                        if root.range-filter-enabled && !root.range-per-channel: Row {
+                            Label { text: "All channels"; width: 90px; }
+                            Label { text: "min:"; }
+                            LineEdit {
+                                width: 75px;
+                                text: root.range-global-min;
+                                edited(v) => { root.range-global-min = v.to-float(); }
+                            }
+                            Label { text: "max:"; }
+                            LineEdit {
+                                width: 75px;
+                                text: root.range-global-max;
+                                edited(v) => { root.range-global-max = v.to-float(); }
+                            }
+                        }
+                        if root.range-filter-enabled && root.range-per-channel: VerticalBox {
+                            spacing: 2px;
+                            ChannelRange { label: "HCP 0.5 m"; active: root.range-filter-enabled; range-min <=> root.range-min1; range-max <=> root.range-max1; }
+                            ChannelRange { label: "HCP 0.7 m"; active: root.range-filter-enabled; range-min <=> root.range-min2; range-max <=> root.range-max2; }
+                            ChannelRange { label: "HCP 0.9 m"; active: root.range-filter-enabled; range-min <=> root.range-min3; range-max <=> root.range-max3; }
+                            ChannelRange { label: "HCP 1.1 m"; active: root.range-filter-enabled; range-min <=> root.range-min4; range-max <=> root.range-max4; }
+                            ChannelRange { label: "HCP 1.5 m"; active: root.range-filter-enabled; range-min <=> root.range-min5; range-max <=> root.range-max5; }
+                            ChannelRange { label: "HCP 1.95 m"; active: root.range-filter-enabled; range-min <=> root.range-min6; range-max <=> root.range-max6; }
+                        }
+
+                        // std filter
+                        Row {
+                            CheckBox {
+                                text: "Std filter  σ:";
+                                checked <=> root.std-filter-enabled;
+                            }
+                            LineEdit {
+                                enabled: root.std-filter-enabled;
+                                width: 60px;
+                                text: root.std-threshold;
+                                edited(v) => { root.std-threshold = v.to-float(); }
+                            }
+                            Label { text: "Action:"; }
+                            ComboBox {
+                                enabled: root.std-filter-enabled;
+                                width: 130px;
+                                model: ["Flag (NULL)", "Remove row"];
+                                current-index <=> root.std-action;
+                            }
+                            Label { text: "Window:"; }
+                            ComboBox {
+                                enabled: root.std-filter-enabled;
+                                width: 140px;
+                                model: ["Time (seconds)", "Samples (N)"];
+                                current-index <=> root.std-window-mode;
+                            }
+                            LineEdit {
+                                enabled: root.std-filter-enabled && root.std-window-mode == 0;
+                                visible: root.std-window-mode == 0;
+                                width: 60px;
+                                text: root.std-window-seconds;
+                                edited(v) => { root.std-window-seconds = v.to-float(); }
+                                placeholder-text: "sec";
+                            }
+                            LineEdit {
+                                enabled: root.std-filter-enabled && root.std-window-mode == 1;
+                                visible: root.std-window-mode == 1;
+                                width: 60px;
+                                text: root.std-window-samples;
+                                edited(v) => { root.std-window-samples = round(v.to-float()); }
+                                placeholder-text: "N";
+                            }
+                        }
+
+                        // smooth / downsample
+                        Row {
+                            CheckBox {
+                                text: "Smooth:";
+                                checked <=> root.smooth-enabled;
+                                toggled => {
+                                    if root.smooth-enabled { root.downsample-enabled = false; }
+                                }
+                            }
+                            CheckBox {
+                                text: "Downsample:";
+                                checked <=> root.downsample-enabled;
+                                toggled => {
+                                    if root.downsample-enabled { root.smooth-enabled = false; }
+                                }
+                            }
+                            Label { text: "Mode:"; }
+                            ComboBox {
+                                enabled: root.smooth-enabled || root.downsample-enabled;
+                                width: 140px;
+                                model: ["Time (seconds)", "Samples (N)"];
+                                current-index <=> root.agg-mode;
+                            }
+                            LineEdit {
+                                enabled: (root.smooth-enabled || root.downsample-enabled)
+                                         && root.agg-mode == 0;
+                                width: 70px;
+                                text: root.agg-seconds;
+                                edited(v) => {
+                                    root.agg-seconds = clamp(round(v.to-float() * 4) / 4, 0.25, 60.0);
+                                }
+                                placeholder-text: "sec";
+                            }
+                            SpinBox {
+                                enabled: (root.smooth-enabled || root.downsample-enabled)
+                                         && root.agg-mode == 1;
+                                width: 90px;
+                                value <=> root.agg-samples;
+                                minimum: 1;
+                                maximum: 9999;
+                            }
+                            Label { text: "Stat:"; }
+                            ComboBox {
+                                enabled: root.smooth-enabled || root.downsample-enabled;
+                                width: 110px;
+                                model: ["Mean", "Median"];
+                                current-index <=> root.agg-stat;
+                            }
+                        }
+
+                        // calibration factors
+                        Row {
+                            Label { text: "Cal. factors (read-only):"; }
+                            Label { text: "0.5m=225.1582"; color: Theme.primary; }
+                            Label { text: "0.7m=114.8766"; color: Theme.primary; }
+                            Label { text: "0.9m=69.4933";  color: Theme.primary; }
+                            Label { text: "1.1m=46.5203";  color: Theme.primary; }
+                            Label { text: "1.5m=25.0176";  color: Theme.primary; }
+                            Label { text: "1.9m=14.8033";  color: Theme.primary; }
+                        }
+                    }
+                }
+
+                // ── OUTPUT ────────────────────────────────────────
+                SectionHeader { title: "Output"; }
+                Rectangle {
+                    background: Theme.sec-output;
+                    border-radius: 4px;
+                    VerticalBox {
+                        padding: 6px; spacing: 2px;
+                        Row {
+                            CheckBox { text: "Export CSV";    checked <=> root.out-csv; }
+                            CheckBox { text: "Export DuckDB"; checked <=> root.out-duckdb; }
+                            CheckBox {
+                                text: "EMagPy columns";
+                                checked <=> root.out-emagpy;
+                            }
+                        }
+                        Row {
+                            Label { text: "Frequency (Hz):"; }
+                            LineEdit { width: 90px; height: 24px; text <=> root.freq; }
+                            Label { text: "Height (m):"; }
+                            LineEdit { width: 70px; height: 24px; text <=> root.sensor-height; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── LOG PANEL ─────────────────────────────────────────────
+        Rectangle {
+            height: 320px;
+            background: #1E1E1E;
+            VerticalBox {
+                padding: 4px; spacing: 4px;
+                HorizontalBox {
+                    spacing: 8px; padding: 0px;
+                    Text {
+                        text: "Log";
+                        color: #AAAAAA; font-size: 11px; font-weight: 700;
+                        vertical-alignment: center;
+                    }
+                    Button {
+                        text: root.is-running ? "Processing…" : "▶  Run";
+                        primary: true;
+                        enabled: !root.is-running;
+                        height: 28px;
+                        clicked => { root.run-processing(); }
+                    }
+                }
+                ScrollView {
+                    vertical-stretch: 1;
+                    viewport-width: self.visible-width;
+                    VerticalBox {
+                        width: parent.visible-width;
+                        padding: 0px;
+                        TextInput {
+                            width: parent.width;
+                            text: root.log-text == "" ? "Ready." : root.log-text;
+                            color: #D4D4D4;
+                            font-size: 12px;
+                            font-family: "monospace";
+                            wrap: word-wrap;
+                            read-only: true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
