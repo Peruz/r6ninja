@@ -397,30 +397,37 @@ fn main() -> Result<()> {
     {
         let ui_handle = ui.as_weak();
         let files = files.clone();
+
         ui.on_pick_files(move || {
-            if let Some(paths) = rfd::FileDialog::new()
-                .add_filter("Raw data", &["txt", "csv", "dat", "raw"])
-                .set_title("Select R6 data files")
-                .pick_files()
-            {
-                let mut lock = files.lock().unwrap();
-                for p in &paths {
-                    if !lock.contains(p) {
-                        lock.push(p.clone());
+            let ui_handle = ui_handle.clone();
+            let files = files.clone();
+
+            std::thread::spawn(move || {
+                let Some(paths) = rfd::FileDialog::new()
+                    .add_filter("Raw data", &["txt", "csv", "dat", "raw"])
+                    .set_title("Select R6 data files")
+                    .pick_files()
+                else {
+                    return;
+                };
+
+                let display = {
+                    let mut lock = files.lock().unwrap();
+                    for p in &paths {
+                        if !lock.contains(p) {
+                            lock.push(p.clone());
+                        }
                     }
-                }
-                let display = lock
-                    .iter()
-                    .map(|p| p.file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                if let Some(ui) = ui_handle.upgrade() {
+                    lock.iter()
+                        .map(|p| p.file_name().unwrap_or_default().to_string_lossy().to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                };
+
+                let _ = ui_handle.upgrade_in_event_loop(move |ui| {
                     ui.set_file_list_display(display.into());
-                }
-            }
+                });
+            });
         });
     }
 

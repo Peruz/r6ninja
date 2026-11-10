@@ -188,15 +188,15 @@ pub fn step_validate_row_count() -> &'static str {
 pub fn step_validate_gps() -> &'static str {r#"
 select
     count(*) as total,
-    count(*) filter (where latitude  is null
-                        or longitude is null
-                        or quality = 0)         as null_gps,
+    count(*) filter (
+        where latitude  is null or longitude is null or quality = 0
+    ) as null_gps,
     count(*) filter (where numsv < 8)           as low_numsv,
     count(*) filter (where hdop  > 2.0)         as high_hdop,
     count(*) filter (where abs(pitch) > 5.0)    as high_pitch,
     count(*) filter (where abs(roll)  > 5.0)    as high_roll
 from data;
-    "#
+"#
 }
 
 pub fn step_validate_gnzda() -> &'static str {
@@ -307,30 +307,29 @@ pub fn step_std_filter(cfg: &ProcessingConfig) -> String {
     };
 
     format!(r#"
-        create or replace table data as (
-            with data_null as (
-                select
-                    j.emrn, j.emtime, j.emtime_ms,
-                    j.gpstime, j.gpsts, j.zdadate,
-                    j.latitude, j.longitude,
-                    j.quality, j.numsv, j.hdop,
-                    j.bvolt, j.bcur, j.tempc,
-                    j.pitch, j.roll,
-                    j.msa1, j.msa2, j.msa3,
-                    j.msa4, j.msa5, j.msa6,
-                    s.stddev1, s.mean1, s.stddev2, s.mean2,
-                    s.stddev3, s.mean3, s.stddev4, s.mean4,
-                    s.stddev5, s.mean5, s.stddev6, s.mean6,
-                    {eca_with_std_conds}
-                from data j left join std_stats s on j.emrn = s.emrn
-            )
-        select * from data_null {remove_filter} order by emrn
-        );
-    "#)
+create or replace table data as (
+    with data_null as (
+        select
+            j.emrn, j.emtime, j.emtime_ms,
+            j.gpstime, j.gpsts, j.zdadate,
+            j.latitude, j.longitude,
+            j.quality, j.numsv, j.hdop,
+            j.bvolt, j.bcur, j.tempc,
+            j.pitch, j.roll,
+            j.msa1, j.msa2, j.msa3,
+            j.msa4, j.msa5, j.msa6,
+            s.stddev1, s.mean1, s.stddev2, s.mean2,
+            s.stddev3, s.mean3, s.stddev4, s.mean4,
+            s.stddev5, s.mean5, s.stddev6, s.mean6,
+            {eca_with_std_conds}
+        from data j left join std_stats s on j.emrn = s.emrn
+    )
+select * from data_null {remove_filter} order by emrn
+);
+"#)
 }
 
-pub fn step_validate_filter() -> &'static str {
-    r#"
+pub fn step_validate_filter() -> &'static str {r#"
 select
     count(*) as total,
     count(*) filter (where eca1 is null
@@ -340,7 +339,7 @@ select
                         or eca5 is null
                         or eca6 is null) as flagged
 from data;
-    "#
+"#
 }
 
 pub fn step_smooth(cfg: &ProcessingConfig) -> String {
